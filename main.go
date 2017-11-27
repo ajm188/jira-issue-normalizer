@@ -2,13 +2,13 @@ package main
 
 import (
 	"bufio"
-	"flag"
 	"fmt"
 	"io"
 	"os"
 )
 
 import (
+	"gopkg.in/alecthomas/kingpin.v2"
 	jira "gopkg.in/andygrunwald/go-jira.v1"
 )
 
@@ -39,16 +39,10 @@ func updateIssues(client *jira.Client, issues []jira.Issue, labelMap map[string]
 	return nil
 }
 
-func getCreds(authFilePath string) (string, string, error) {
+func getCreds(authFile *os.File) (string, string, error) {
 	raise := func(err error) (string, string, error) {
 		return "", "", err
 	}
-
-	authFile, err := os.Open(authFilePath)
-	if err != nil {
-		return raise(err)
-	}
-	defer authFile.Close()
 
 	reader := bufio.NewReader(authFile)
 
@@ -65,30 +59,26 @@ func getCreds(authFilePath string) (string, string, error) {
 }
 
 func main() {
-	url := flag.String("jira-url", os.Getenv("JIRA_URL"), "URL of your JIRA instance")
-	authFilePath := flag.String("auth-file", os.Getenv("JIRA_AUTH_FILE"), "Path to a file with auth credentials. Must have <user> on line 1 and <pass> on line 2.")
-	maxIssues := flag.Int("max-issues", 50, "Number of issues to look for labels in the project.")
-	flag.Parse()
+	url := kingpin.Flag("jira-url", "JIRA instance URL").URL()
+	authFile := kingpin.Flag("auth-file", "Path to a file with auth credentials. Must have <user> on line 1 and <pass> on line 2.").File()
+	maxIssues := kingpin.Flag("max-issues", "Number of issues to look at for labels in the project.").Default("50").Int()
+	project := kingpin.Arg("project", "Project to normalize labels on.").Required().String()
 
-	if flag.NArg() != 1 {
-		fmt.Fprintf(os.Stderr, "usage: %s [options] <project>\n", os.Args[0])
-		flag.PrintDefaults()
-		os.Exit(1)
-	}
+	defer (*authFile).Close()
+	kingpin.Parse()
 
-	user, pass, err := getCreds(*authFilePath)
+	user, pass, err := getCreds(*authFile)
 	if err != nil {
 		panic(err)
 	}
 
-	client, err := jira.NewClient(nil, *url)
+	client, err := jira.NewClient(nil, (*url).String())
 	if err != nil {
 		panic(err)
 	}
 	client.Authentication.SetBasicAuth(user, pass)
 
-	project := flag.Arg(0)
-	issues, r, err := getIssuesInProject(client, project, *maxIssues)
+	issues, r, err := getIssuesInProject(client, *project, *maxIssues)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", *r.Response.Request)
 		panic(err)
