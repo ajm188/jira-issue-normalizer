@@ -66,6 +66,31 @@ func normalizeLabels(labels []string) map[string]string {
 }
 
 func updateIssues(client *jira.Client, issues []jira.Issue, labelMap map[string]string) error {
+	for _, issue := range issues {
+		// reduce labels to a unique set
+		labels := make(map[string]bool, len(issue.Fields.Labels))
+		for _, label := range issue.Fields.Labels {
+			labels[labelMap[label]] = true
+		}
+
+		// build list from set of unique normalized labels
+		labelSlice := make([]string, 0, len(labels))
+		for k, _ := range labels {
+			labelSlice = append(labelSlice, k)
+		}
+
+		// build update payload
+		payload := map[string]interface{} {
+			"fields": map[string]interface{} {
+				"labels": labelSlice,
+			},
+		}
+		resp, err := client.Issue.UpdateIssue(issue.ID, payload)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "%v\n", resp.Response.Request)
+			return err
+		}
+	}
 	return nil
 }
 
