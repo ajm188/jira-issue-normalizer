@@ -140,8 +140,6 @@ func main() {
 	}
 	labels := extractLabels(issues)
 	normalizedLabelMap := normalizeLabels(labels)
-	fmt.Println(normalizedLabelMap)
-	return
 
 	err = updateIssues(client, issues, normalizedLabelMap)
 	if err != nil {
