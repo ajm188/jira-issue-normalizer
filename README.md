@@ -15,10 +15,17 @@ This is dumb.
 If you don't have Go installed and setup on your system, you'll need to do that first.
 Follow instructions at [golang.org](https://golang.org).
 
+### Install Glide
+
+[Glide](https://glide.sh) is a package manager for Go.
+You can install it via the instructions on their site, but I prefer using the built-in go tooling.
+Simply `go install github.com/Masterminds/glide` and ensure that `$GOPATH/bin/` is in your $PATH, and you're good to go.
+
 ### Install dependencies
 
-Simply run `./bin/setup` on any UNIX system.
-It installs all the dependencies for you.
+```bash
+$ glide install
+```
 
 ### Running
 

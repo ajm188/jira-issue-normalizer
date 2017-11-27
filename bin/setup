@@ -1,4 +1,0 @@
-#!/bin/sh
-
-go get gopkg.in/andygrunwald/go-jira.v1 && \
-    go get gopkg.in/alecthomas/kingpin.v2
