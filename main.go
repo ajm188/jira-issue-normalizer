@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 )
 
 import (
@@ -32,7 +33,36 @@ func extractLabels(issues []jira.Issue) []string {
 }
 
 func normalizeLabels(labels []string) map[string]string {
-	return nil
+	labelMap := make(map[string]string, len(labels))
+	labelsToLetters := make(map[string]string, len(labels))
+	canonicalLabels := make(map[string]string, len(labels))
+
+	lettersOnly := func(r rune) rune {
+		switch {
+		case r >= 'a' && r <= 'z':
+			return r
+		case r >= 'A' && r <= 'Z':
+			return r
+		default:
+			return rune(-1)
+		}
+	}
+
+	for _, label := range labels {
+		downcased := strings.ToLower(label)
+		letters := strings.Map(lettersOnly, downcased)
+		canonicalLabel, exists := canonicalLabels[letters]
+		if !exists || len(canonicalLabel) < len(label) {
+			canonicalLabels[letters] = downcased
+		}
+
+		labelsToLetters[label] = letters
+	}
+
+	for _, label := range labels {
+		labelMap[label] = canonicalLabels[labelsToLetters[label]]
+	}
+	return labelMap
 }
 
 func updateIssues(client *jira.Client, issues []jira.Issue, labelMap map[string]string) error {
@@ -84,9 +114,9 @@ func main() {
 		panic(err)
 	}
 	labels := extractLabels(issues)
-	for _, l := range labels { fmt.Println(l) }
-	return
 	normalizedLabelMap := normalizeLabels(labels)
+	fmt.Println(normalizedLabelMap)
+	return
 
 	err = updateIssues(client, issues, normalizedLabelMap)
 	if err != nil {
