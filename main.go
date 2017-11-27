@@ -34,6 +34,20 @@ func extractLabels(issues []jira.Issue) []string {
 }
 
 func normalizeLabels(labels []string) map[string]string {
+	// This is a fairly non-intuitive, multi-step process, so I will
+	// document it a bit here:
+	//
+	// Step 1:
+	// Build a map going from labels to just the letters in those labels,
+	// so we can group mostly-duplicated labels together. While we're doing
+	// that, we also look for the longest label that falls in a particular
+	// group (this is stored in canonicalLabels). This is so that when we
+	// create the final label map, "my-long-label" will be preferred over
+	// both "mylonglabel" and "my-longlabel".
+	//
+	// Step 2:
+	// Go back over the labels and map each original label to the canonical
+	// label for that label's group.
 	labelMap := make(map[string]string, len(labels))
 	labelsToLetters := make(map[string]string, len(labels))
 	canonicalLabels := make(map[string]string, len(labels))
