@@ -17,7 +17,7 @@ func getIssuesInProject(client *jira.Client, project string, maxIssues int) ([]j
 	queryString := fmt.Sprintf("project = %s", project)
 	queryOptions := &jira.SearchOptions{
 		MaxResults: maxIssues,
-		Fields: []string{"id,labels"},
+		Fields:     []string{"id,labels"},
 	}
 	return client.Issue.Search(queryString, queryOptions)
 }
@@ -80,8 +80,8 @@ func updateIssues(client *jira.Client, issues []jira.Issue, labelMap map[string]
 		}
 
 		// build update payload
-		payload := map[string]interface{} {
-			"fields": map[string]interface{} {
+		payload := map[string]interface{}{
+			"fields": map[string]interface{}{
 				"labels": labelSlice,
 			},
 		}
