@@ -1,10 +1,11 @@
 package main
 
 import (
-	"bufio"
+	"encoding/json"
 	"fmt"
-	"io"
+	"io/ioutil"
 	"os"
+	"path"
 	"strings"
 )
 
@@ -94,35 +95,50 @@ func updateIssues(client *jira.Client, issues []jira.Issue, labelMap map[string]
 	return nil
 }
 
-func getCreds(authFile *os.File) (string, string, error) {
-	raise := func(err error) (string, string, error) {
-		return "", "", err
+type Creds struct {
+	user     string
+	password string
+}
+
+func getCreds(authFilePath string) (*Creds, error) {
+	data, err := ioutil.ReadFile(authFilePath)
+	if err != nil {
+		return nil, err
 	}
 
-	reader := bufio.NewReader(authFile)
-
-	user, err := reader.ReadString('\n')
-	if err != nil && err != io.EOF {
-		return raise(err)
-	}
-	pass, err := reader.ReadString('\n')
-	if err != nil && err != io.EOF {
-		return raise(err)
-	}
-
-	return user[:len(user)-1], pass[:len(pass)-1], err
+	var creds Creds
+	err = json.Unmarshal(data, &creds)
+	return &creds, err
 }
 
 func main() {
-	url := kingpin.Flag("jira-url", "JIRA instance URL").URL()
-	authFile := kingpin.Flag("auth-file", "Path to a file with auth credentials. Must have <user> on line 1 and <pass> on line 2.").File()
-	maxIssues := kingpin.Flag("max-issues", "Number of issues to look at for labels in the project.").Default("50").Int()
-	project := kingpin.Arg("project", "Project to normalize labels on.").Required().String()
+	workdir, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
 
-	defer (*authFile).Close()
+	url := kingpin.Flag(
+		"jira-url",
+		"JIRA instance URL",
+	).Default("http://localhost").URL()
+	authFilePath := kingpin.Flag(
+		"auth-file",
+		"Path to JSON file with auth credentials. Must have <user> and <password>.",
+	).Default(
+		path.Join(workdir, "auth.json"),
+	).ExistingFile()
+	maxIssues := kingpin.Flag(
+		"max-issues",
+		"Number of issues to look at for labels in the project.",
+	).Default("50").Int()
+	project := kingpin.Arg(
+		"project",
+		"Project to normalize labels on.",
+	).Required().String()
+
 	kingpin.Parse()
 
-	user, pass, err := getCreds(*authFile)
+	creds, err := getCreds(*authFilePath)
 	if err != nil {
 		panic(err)
 	}
@@ -131,7 +147,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	client.Authentication.SetBasicAuth(user, pass)
+	client.Authentication.SetBasicAuth(creds.user, creds.password)
 
 	issues, r, err := getIssuesInProject(client, *project, *maxIssues)
 	if err != nil {
