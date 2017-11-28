@@ -15,24 +15,43 @@ This is dumb.
 If you don't have Go installed and setup on your system, you'll need to do that first.
 Follow instructions at [golang.org](https://golang.org).
 
-### Install Glide
+### Running from binary
+
+First, use `go` to install it (make sure `$GOPATH/bin` is in your $PATH):
+
+```bash
+$ go install github.com/ajm188/jira-issue-normalizer
+```
+
+Then just:
+
+```bash
+$ jira-issue-normalizer --jira-url <my-jira> --auth-file <path-to-creds> my-project
+```
+
+### Running from source
+
+#### Install Glide
 
 [Glide](https://glide.sh) is a package manager for Go.
 You can install it via the instructions on their site, but I prefer using the built-in go tooling.
 Simply `go install github.com/Masterminds/glide` and ensure that `$GOPATH/bin/` is in your $PATH, and you're good to go.
 
-### Install dependencies
+#### Install dependencies
 
 ```bash
 $ glide install
 ```
 
-### Running
+#### Running
 
 After completing the above, running is as simple as:
 
 ```bash
-$ go run main.go --jira-url <my-jira> --auth-file <path-to-creds> my-project
+$ go build .
+$ ./jira-issue-normalizer --jira-url <my-jira> --auth-file <path-to-creds> my-project
 ```
 
-For more options, run `go run main.go --help`.
+### Usage
+
+For usage and a description of the various options, see `--help`.
