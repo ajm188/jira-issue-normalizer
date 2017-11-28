@@ -110,8 +110,8 @@ func updateIssues(client *jira.Client, issues []jira.Issue, labelMap map[string]
 }
 
 type Creds struct {
-	user     string
-	password string
+	User     string
+	Password string
 }
 
 func getCreds(authFilePath string) (*Creds, error) {
@@ -161,7 +161,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	client.Authentication.SetBasicAuth(creds.user, creds.password)
+	client.Authentication.SetBasicAuth(creds.User, creds.Password)
 
 	issues, r, err := getIssuesInProject(client, *project, *maxIssues)
 	if err != nil {
