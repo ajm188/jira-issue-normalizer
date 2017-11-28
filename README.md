@@ -8,50 +8,37 @@ JIRA labels are case sensitive, meaning "my-label" and "my-LaBeL" are two differ
 This is dumb.
 `jira-issue-normalizer` combs through the labels in a project and does its best to standardize labels to their downcased and dash-separated forms ("my-label" is preferred over "mylabel", and "my-long-label" is preferred over "mylong-label" or "my-longlabel").
 
-## How to Run This
+## Usage
 
-### Setup Go
+See `--help` for all usage and options.
 
-If you don't have Go installed and setup on your system, you'll need to do that first.
-Follow instructions at [golang.org](https://golang.org).
+First, you will need a go installation on your system.
+[Follow these instructions](https://golang.org).
 
-### Running from binary
+After installing go, you'll want to ensure any binaries you install via the go tooling are in your PATH:
 
-First, use `go` to install it (make sure `$GOPATH/bin` is in your $PATH):
+```bash
+$ export PATH=$GOPATH/bin:$PATH
+```
+
+### via `go install`
 
 ```bash
 $ go install github.com/ajm188/jira-issue-normalizer
+$ jira-issue-normalizer --help
 ```
 
-Then just:
+### from source
+
+You will need [glide](https://glide.sh) to install dependencies.
 
 ```bash
-$ jira-issue-normalizer --jira-url <my-jira> --auth-file <path-to-creds> my-project
+$ go install github.com/Masterminds/glide
 ```
 
-### Running from source
-
-#### Install Glide
-
-[Glide](https://glide.sh) is a package manager for Go.
-You can install it via the instructions on their site, but I prefer using the built-in go tooling.
-Simply `go install github.com/Masterminds/glide` and ensure that `$GOPATH/bin/` is in your $PATH, and you're good to go.
-
-#### Install dependencies
-
 ```bash
+$ git clone git@github.com:ajm188/jira-issue-normalizer && cd jira-issue-normalizer
 $ glide install
-```
-
-#### Running
-
-After completing the above, running is as simple as:
-
-```bash
 $ go build .
-$ ./jira-issue-normalizer --jira-url <my-jira> --auth-file <path-to-creds> my-project
+$ ./jira-issue-normalizer --help
 ```
-
-### Usage
-
-For usage and a description of the various options, see `--help`.
