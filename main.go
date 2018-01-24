@@ -38,25 +38,27 @@ func normalizeLabels(labels []string) map[string]string {
 	// document it a bit here:
 	//
 	// Step 1:
-	// Build a map going from labels to just the letters in those labels,
-	// so we can group mostly-duplicated labels together. While we're doing
-	// that, we also look for the longest label that falls in a particular
-	// group (this is stored in canonicalLabels). This is so that when we
-	// create the final label map, "my-long-label" will be preferred over
-	// both "mylonglabel" and "my-longlabel".
+	// Build a map going from labels to just the alphanumerics in those
+	// labels, so we can group mostly-duplicated labels together. While
+	// we're doing that, we also look for the longest label that falls in a
+	// particular group (this is stored in canonicalLabels). This is so
+	// that when we create the final label map, "my-long-label" will be
+	// preferred over both "mylonglabel" and "my-longlabel".
 	//
 	// Step 2:
 	// Go back over the labels and map each original label to the canonical
 	// label for that label's group.
 	labelMap := make(map[string]string, len(labels))
-	labelsToLetters := make(map[string]string, len(labels))
+	labelsToHashedLabels := make(map[string]string, len(labels))
 	canonicalLabels := make(map[string]string, len(labels))
 
-	lettersOnly := func(r rune) rune {
+	hashFunc := func(r rune) rune {
 		switch {
 		case r >= 'a' && r <= 'z':
 			return r
 		case r >= 'A' && r <= 'Z':
+			return r
+		case r >= '0' && r <= '9':
 			return r
 		default:
 			return rune(-1)
@@ -65,17 +67,17 @@ func normalizeLabels(labels []string) map[string]string {
 
 	for _, label := range labels {
 		downcased := strings.ToLower(label)
-		letters := strings.Map(lettersOnly, downcased)
-		canonicalLabel, exists := canonicalLabels[letters]
+		hashed := strings.Map(hashFunc, downcased)
+		canonicalLabel, exists := canonicalLabels[hashed]
 		if !exists || len(canonicalLabel) < len(label) {
-			canonicalLabels[letters] = downcased
+			canonicalLabels[hashed] = downcased
 		}
 
-		labelsToLetters[label] = letters
+		labelsToHashedLabels[label] = hashed
 	}
 
 	for _, label := range labels {
-		labelMap[label] = canonicalLabels[labelsToLetters[label]]
+		labelMap[label] = canonicalLabels[labelsToHashedLabels[label]]
 	}
 	return labelMap
 }
